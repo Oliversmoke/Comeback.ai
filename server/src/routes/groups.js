@@ -2,6 +2,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import Group from '../models/Group.js';
 import User from '../models/User.js';
+import Message from '../models/Message.js';
 import { authenticate } from '../middleware/auth.js';
 import { catchAsync, AppError } from '../middleware/errorHandler.js';
 import { validate, groupSchema } from '../validators/schemas.js';
@@ -98,7 +99,7 @@ router.post('/:id/leave', catchAsync(async (req, res) => {
   group.members = group.members.filter((m) => m.user.toString() !== req.user.id);
   await group.save();
 
-  await req.user.model('User').findByIdAndUpdate(req.user.id, {
+  await User.findByIdAndUpdate(req.user.id, {
     $pull: { groups: group._id },
   });
 
@@ -122,7 +123,6 @@ router.put('/:id/members/:userId/role', catchAsync(async (req, res) => {
 
 router.get('/:id/messages', catchAsync(async (req, res) => {
   const { page = 1, limit = 50 } = req.query;
-  const Message = (await import('../models/Message.js')).default;
   const messages = await Message.find({ group: req.params.id, isDeleted: false })
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)

@@ -48,21 +48,29 @@ export const configureSocket = (httpServer) => {
       socket.join(`group:${group._id}`);
     });
 
-    socket.on('group:join', async (groupId) => {
-      const isMember = await Group.exists({ _id: groupId, 'members.user': userId });
-      if (isMember) {
-        socket.join(`group:${groupId}`);
+    socket.on('group:join', async (groupId, callback) => {
+      try {
+        if (!groupId) return callback?.({ error: 'Group ID required' });
+        const isMember = await Group.exists({ _id: groupId, 'members.user': userId });
+        if (isMember) {
+          socket.join(`group:${groupId}`);
+          callback?.({ success: true });
+        } else {
+          callback?.({ error: 'Not a member' });
+        }
+      } catch (error) {
+        callback?.({ error: error.message });
       }
     });
 
     socket.on('group:leave', (groupId) => {
-      socket.leave(`group:${groupId}`);
+      if (groupId) socket.leave(`group:${groupId}`);
     });
 
     socket.on('message:send', async (data, callback) => {
       try {
         const { groupId, content, messageType = 'text' } = data;
-        if (!groupId || !content) return callback?.({ error: 'Missing required fields' });
+        if (!groupId || !content?.trim()) return callback?.({ error: 'Missing required fields' });
 
         const isMember = await Group.exists({ _id: groupId, 'members.user': userId });
         if (!isMember) return callback?.({ error: 'Not a member' });
@@ -70,7 +78,7 @@ export const configureSocket = (httpServer) => {
         const message = await Message.create({
           group: groupId,
           sender: userId,
-          content,
+          content: content.trim(),
           messageType,
         });
 
@@ -85,41 +93,51 @@ export const configureSocket = (httpServer) => {
 
         callback?.({ success: true, message: populated });
       } catch (error) {
+        console.error('Socket message:send error:', error);
         callback?.({ error: error.message });
       }
     });
 
     socket.on('message:read', async (data) => {
-      const { messageIds, groupId } = data;
-      if (!messageIds || !groupId) return;
+      try {
+        const { messageIds, groupId } = data;
+        if (!messageIds?.length || !groupId) return;
 
-      await Message.updateMany(
-        { _id: { $in: messageIds }, group: groupId },
-        { $addToSet: { readBy: userId } }
-      );
+        await Message.updateMany(
+          { _id: { $in: messageIds }, group: groupId },
+          { $addToSet: { readBy: userId } }
+        );
 
-      io.to(`group:${groupId}`).emit('message:read', {
-        messageIds,
-        userId,
-        username: socket.user.username,
-      });
+        io.to(`group:${groupId}`).emit('message:read', {
+          messageIds,
+          userId,
+          username: socket.user.username,
+        });
+      } catch (error) {
+        console.error('Socket message:read error:', error);
+      }
     });
 
     socket.on('message:delete', async (data) => {
-      const { messageId, groupId } = data;
-      if (!messageId) return;
+      try {
+        const { messageId, groupId } = data;
+        if (!messageId) return;
 
-      const message = await Message.findOne({ _id: messageId, group: groupId });
-      if (!message || (message.sender.toString() !== userId)) return;
+        const message = await Message.findOne({ _id: messageId, group: groupId });
+        if (!message || (message.sender.toString() !== userId)) return;
 
-      message.isDeleted = true;
-      await message.save();
+        message.isDeleted = true;
+        await message.save();
 
-      io.to(`group:${groupId}`).emit('message:deleted', { messageId });
+        io.to(`group:${groupId}`).emit('message:deleted', { messageId });
+      } catch (error) {
+        console.error('Socket message:delete error:', error);
+      }
     });
 
     socket.on('typing:start', (data) => {
       const { groupId } = data;
+      if (!groupId) return;
       socket.to(`group:${groupId}`).emit('typing:start', {
         userId,
         username: socket.user.username,
@@ -129,6 +147,7 @@ export const configureSocket = (httpServer) => {
 
     socket.on('typing:stop', (data) => {
       const { groupId } = data;
+      if (!groupId) return;
       socket.to(`group:${groupId}`).emit('typing:stop', {
         userId,
         username: socket.user.username,
@@ -137,20 +156,29 @@ export const configureSocket = (httpServer) => {
     });
 
     socket.on('group:activity', (data) => {
-      const { groupId, type, payload } = data;
-      io.to(`group:${groupId}`).emit('group:activity', {
-        userId,
-        username: socket.user.username,
-        type,
-        payload,
-        timestamp: new Date(),
-      });
+      try {
+        const { groupId, type, payload } = data;
+        if (!groupId || !type) return;
+        io.to(`group:${groupId}`).emit('group:activity', {
+          userId,
+          username: socket.user.username,
+          type,
+          payload,
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        console.error('Socket group:activity error:', error);
+      }
     });
 
     socket.on('disconnect', async () => {
-      onlineUsers.delete(userId);
-      await User.findByIdAndUpdate(userId, { isOnline: false, lastSeen: new Date() });
-      io.emit('user:offline', { userId, username: socket.user.username });
+      try {
+        onlineUsers.delete(userId);
+        await User.findByIdAndUpdate(userId, { isOnline: false, lastSeen: new Date() });
+        io.emit('user:offline', { userId, username: socket.user.username });
+      } catch (error) {
+        console.error('Socket disconnect error:', error);
+      }
     });
   });
 

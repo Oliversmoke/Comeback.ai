@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import passport from 'passport';
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -126,6 +127,33 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+const gracefulShutdown = (signal) => {
+  console.log(`\n${signal} received. Shutting down gracefully...`);
+  server.close(() => {
+    console.log('HTTP server closed.');
+    mongoose.connection.close(false).then(() => {
+      console.log('MongoDB connection closed.');
+      process.exit(0);
+    });
+  });
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout.');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  console.error('The application will continue running but this should be investigated.');
+});
 
 startServer();
 

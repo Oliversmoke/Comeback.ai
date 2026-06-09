@@ -50,12 +50,13 @@ class AnthropicProvider {
 class GeminiProvider {
   constructor() {
     this.name = 'gemini';
+    this.defaultModel = 'gemini-2.0-flash';
   }
 
   async initialize() {
     const { GoogleGenerativeAI } = await import('@google/generative-ai');
     this.client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    this.model = this.client.getGenerativeModel({ model: options?.model || 'gemini-pro' });
+    this.model = this.client.getGenerativeModel({ model: this.defaultModel });
   }
 
   async chat(messages, options = {}) {

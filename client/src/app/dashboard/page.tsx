@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
-  Target, ListTodo, Trophy, TrendingUp, Bot, Sparkles,
-  CheckCircle2, Clock, ArrowRight, Zap, Flame, Users,
+  Target, ListTodo, TrendingUp, Bot, Sparkles,
+  CheckCircle2, ArrowRight, Zap, Flame, Users,
 } from 'lucide-react';
 import { tasksAPI, goalsAPI, aiAPI, leaderboardAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';

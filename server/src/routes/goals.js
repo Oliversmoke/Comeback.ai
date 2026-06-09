@@ -63,6 +63,10 @@ router.put('/:id', catchAsync(async (req, res) => {
     if (req.body[key] !== undefined) updates[key] = req.body[key];
   }
 
+  if (updates.status === 'completed') {
+    updates.completedDate = new Date();
+  }
+
   const goal = await Goal.findOneAndUpdate(
     { _id: req.params.id, user: req.user.id },
     { $set: updates },
@@ -70,19 +74,11 @@ router.put('/:id', catchAsync(async (req, res) => {
   );
   if (!goal) throw new AppError('Goal not found', 404, 'NOT_FOUND');
 
-  if (updates.status === 'completed' && goal.status !== 'completed') {
-    updates.completedDate = new Date();
+  if (updates.status === 'completed') {
     const xpAwarded = goal.priority === 'critical' ? 100 : goal.priority === 'high' ? 75 : goal.priority === 'medium' ? 50 : 25;
     await awardXp(req.user.id, xpAwarded, 'goal_completed', {
       type: 'goal', ref: goal._id, description: `Completed goal: ${goal.title}`,
     });
-  }
-
-  if (updates.progress !== undefined) {
-    await Goal.updateOne(
-      { _id: goal._id },
-      { $set: { progress: updates.progress } }
-    );
   }
 
   res.json({ success: true, data: goal });

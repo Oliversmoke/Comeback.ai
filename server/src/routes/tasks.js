@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import Task from '../models/Task.js';
+import Goal from '../models/Goal.js';
+import Group from '../models/Group.js';
 import User from '../models/User.js';
 import { authenticate } from '../middleware/auth.js';
 import { catchAsync, AppError } from '../middleware/errorHandler.js';
@@ -108,7 +110,6 @@ router.put('/:id', catchAsync(async (req, res) => {
     });
 
     if (task.goal) {
-      const Goal = (await import('../models/Goal.js')).default;
       const goal = await Goal.findById(task.goal);
       if (goal && goal.progress < 100) {
         const progressIncrease = Math.min(5, 100 - goal.progress);
@@ -147,7 +148,6 @@ router.post('/:id/complete', catchAsync(async (req, res) => {
   });
 
   if (task.isGroupTask && task.group) {
-    const Group = (await import('../models/Group.js')).default;
     await Group.findByIdAndUpdate(task.group, {
       $inc: { totalXp: task.xpReward || 10 },
       $set: { lastActivityDate: new Date() },
@@ -159,7 +159,6 @@ router.post('/:id/complete', catchAsync(async (req, res) => {
   }
 
   if (task.goal) {
-    const Goal = (await import('../models/Goal.js')).default;
     const goal = await Goal.findById(task.goal);
     if (goal && goal.progress < 100) {
       await Goal.findByIdAndUpdate(task.goal, { $inc: { progress: Math.min(5, 100 - goal.progress) } });
