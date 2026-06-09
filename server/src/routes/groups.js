@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import Group from '../models/Group.js';
+import User from '../models/User.js';
 import { authenticate } from '../middleware/auth.js';
 import { catchAsync, AppError } from '../middleware/errorHandler.js';
 import { validate, groupSchema } from '../validators/schemas.js';
@@ -51,7 +52,7 @@ router.post('/', validate(groupSchema), catchAsync(async (req, res) => {
     inviteCode: crypto.randomBytes(6).toString('hex'),
   });
 
-  await req.user.model('User').findByIdAndUpdate(req.user.id, {
+  await User.findByIdAndUpdate(req.user.id, {
     $push: { groups: group._id },
   });
 
@@ -83,7 +84,7 @@ router.post('/join/:inviteCode', catchAsync(async (req, res) => {
   group.members.push({ user: req.user.id, role: 'member' });
   await group.save();
 
-  await req.user.model('User').findByIdAndUpdate(req.user.id, {
+  await User.findByIdAndUpdate(req.user.id, {
     $push: { groups: group._id },
   });
 

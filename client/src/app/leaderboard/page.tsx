@@ -106,7 +106,7 @@ export default function LeaderboardPage() {
         </div>
       ) : (
         <StaggerContainer className="space-y-2">
-          {(tab === 'users' ? users : groups).slice(0, 2).map((entry: any, i: number) => (
+          {(tab === 'users' ? users : groups).slice(0, 3).map((entry: any, i: number) => (
             <StaggerItem key={entry.userId || entry.id}>
               <motion.div
                 whileHover={{ x: 4 }}

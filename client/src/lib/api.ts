@@ -67,9 +67,9 @@ export const goalsAPI = {
     api.get('/goals', { params }),
   get: (id: string) =>
     api.get(`/goals/${id}`),
-  create: (data: Partial<Goal>) =>
+  create: (data: Record<string, unknown>) =>
     api.post('/goals', data),
-  update: (id: string, data: Partial<Goal>) =>
+  update: (id: string, data: Record<string, unknown>) =>
     api.put(`/goals/${id}`, data),
   delete: (id: string) =>
     api.delete(`/goals/${id}`),
@@ -86,9 +86,9 @@ export const groupsAPI = {
     api.get('/groups/my'),
   get: (id: string) =>
     api.get(`/groups/${id}`),
-  create: (data: Partial<Group>) =>
+  create: (data: Record<string, unknown>) =>
     api.post('/groups', data),
-  update: (id: string, data: Partial<Group>) =>
+  update: (id: string, data: Record<string, unknown>) =>
     api.put(`/groups/${id}`, data),
   join: (inviteCode: string) =>
     api.post(`/groups/join/${inviteCode}`),
@@ -105,9 +105,9 @@ export const tasksAPI = {
     api.get('/tasks/today'),
   get: (id: string) =>
     api.get(`/tasks/${id}`),
-  create: (data: Partial<Task>) =>
+  create: (data: Record<string, unknown>) =>
     api.post('/tasks', data),
-  update: (id: string, data: Partial<Task>) =>
+  update: (id: string, data: Record<string, unknown>) =>
     api.put(`/tasks/${id}`, data),
   delete: (id: string) =>
     api.delete(`/tasks/${id}`),

@@ -5,9 +5,10 @@ import Message from '../models/Message.js';
 import Group from '../models/Group.js';
 
 const onlineUsers = new Map();
+let io;
 
 export const configureSocket = (httpServer) => {
-  const io = new Server(httpServer, {
+  io = new Server(httpServer, {
     cors: {
       origin: process.env.FRONTEND_URL || 'http://localhost:3000',
       methods: ['GET', 'POST'],

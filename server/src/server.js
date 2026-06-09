@@ -12,6 +12,7 @@ import connectDB from './config/database.js';
 import configurePassport from './config/passport.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { configureSocket } from './socket/index.js';
+import { initializeAI } from './services/ai/providers.js';
 
 import authRoutes from './routes/auth.js';
 import goalRoutes from './routes/goals.js';
@@ -94,9 +95,22 @@ app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || 5000;
 
+const validateEnv = () => {
+  const required = ['MONGODB_URI', 'JWT_SECRET'];
+  const missing = required.filter((key) => !process.env[key]);
+  if (missing.length > 0) {
+    console.error(`Missing required environment variables: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+};
+
 const startServer = async () => {
   try {
+    validateEnv();
+
     await connectDB();
+
+    await initializeAI();
 
     configureSocket(server);
 

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Task from '../models/Task.js';
+import User from '../models/User.js';
 import { authenticate } from '../middleware/auth.js';
 import { catchAsync, AppError } from '../middleware/errorHandler.js';
 import { validate, taskSchema } from '../validators/schemas.js';
@@ -98,7 +99,7 @@ router.put('/:id', catchAsync(async (req, res) => {
 
   if (wasCompleted) {
     const streak = await updateStreak(req.user.id);
-    await req.user.model('User').findByIdAndUpdate(req.user.id, {
+    await User.findByIdAndUpdate(req.user.id, {
       $inc: { completedTasks: 1 },
     });
 
@@ -137,7 +138,7 @@ router.post('/:id/complete', catchAsync(async (req, res) => {
   await task.save();
 
   const streak = await updateStreak(req.user.id);
-  await req.user.model('User').findByIdAndUpdate(req.user.id, {
+  await User.findByIdAndUpdate(req.user.id, {
     $inc: { completedTasks: 1 },
   });
 

@@ -1,323 +1,206 @@
-# RickChat AI Operating System — Production Backend
+# RickChat — AI Operating System
 
-Multi-service backend for the RickChat AI Operating System, built with Kotlin, Ktor, PostgreSQL, Redis, Qdrant, and Google Cloud Platform.
+AI-powered social productivity platform combining chat, goals, tasks, AI coaching, and real-time collaboration.
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        API Gateway (:8080)                      │
-│              Rate Limiting | Auth | Routing | CORS              │
-└──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬───────┘
-       │      │      │      │      │      │      │      │
-  ┌────┘ ┌───┘ ┌───┘ ┌───┘ ┌───┘ ┌───┘ ┌───┘ ┌───┘ ┌───┐
-  ▼      ▼     ▼     ▼     ▼     ▼     ▼     ▼     ▼     ▼
-Auth   User  Chat   AI    Mem   Mkt   Learn Trans Notif ...
-(8081) (8082) (8083) (8084) (8085) (8086) (8087) (8088) (8092)...
-
-┌─────────────────────────────────────────────────────────────────┐
-│                     Shared Infrastructure                        │
-│  PostgreSQL  │  Redis  │  Qdrant  │  Firestore  │  GCS          │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                   Client (Next.js 15)                     │
+│          Server Components + Client Components            │
+│         Tailwind CSS · Framer Motion · Zustand           │
+└──────────────────────┬──────────────────────────────────┘
+                       │ HTTP/WS
+┌──────────────────────▼──────────────────────────────────┐
+│         API Gateway (Express.js · port 5000)              │
+│        Helmet · CORS · Rate Limit · Passport · JWT       │
+├──────────────────────────────────────────────────────────┤
+│  Auth  │ Goals  │ Tasks  │ Groups  │ Chat  │ AI  │ Leader │
+├──────────────────────────────────────────────────────────┤
+│              Socket.io (Real-time Messaging)              │
+├──────────────────────────────────────────────────────────┤
+│              MongoDB · Redis · OpenAI/Gemini              │
+└──────────────────────────────────────────────────────────┘
 ```
-
-## Services
-
-| Service | Port | Description |
-|---------|------|-------------|
-| API Gateway | 8080 | Entry point, rate limiting, auth, routing |
-| Auth Service | 8081 | Firebase Auth, OAuth2, JWT, RBAC, password management |
-| User Service | 8082 | User CRUD, profiles, preferences, settings |
-| Chat Service | 8083 | Real-time chat, WebSockets, messaging, reactions |
-| AI Gateway | 8084 | Multi-provider AI routing (OpenAI, Gemini, Anthropic) |
-| Memory Service | 8085 | Long-term memory, vector search, semantic retrieval |
-| Marketplace | 8086 | Creators, items, reviews, collections, downloads |
-| Learning | 8087 | Courses, lessons, quizzes, progress, certificates |
-| Translation | 8088 | Text translation, live captions, language support |
-| Accessibility | 8089 | TTS, STT, OCR, scene description, accessibility settings |
-| Camera AI | 8090 | Object detection, scene analysis, image enhancement |
-| Voice AI | 8091 | Voice synthesis, recognition, cloning, voice profiles |
-| Notifications | 8092 | Push, email, in-app notifications, device management |
-| Payments | 8093 | Payment processing, refunds, revenue sharing |
-| Subscriptions | 8094 | Plan management, subscription lifecycle |
-| Files | 8095 | File uploads, storage, metadata management |
-| Analytics | 8096 | Event tracking, dashboards, daily stats |
-| Admin | 8097 | Moderation, user management, system config, audit logs |
 
 ## Tech Stack
 
-- **Language**: Kotlin 2.1
-- **Framework**: Ktor 3.1
-- **Database**: PostgreSQL 17 (with pgvector), Redis 7, Qdrant
-- **ORM/Query**: Exposed, Flyway migrations
-- **Auth**: Firebase Auth, OAuth2, JWT (access + refresh tokens), RBAC
-- **DI**: Koin 4.0
-- **Serialization**: kotlinx.serialization, Jackson
-- **AI**: OpenAI API, Gemini API, Anthropic API
-- **Cloud**: Google Cloud Run, Cloud Functions, Cloud Storage, Secret Manager
-- **Monitoring**: Micrometer, OpenTelemetry, Prometheus
-- **Messaging**: PubSub (or in-memory)
-- **Testing**: JUnit 5, Strikt, MockK, k6, Testcontainers
-- **Infrastructure**: Docker, Kubernetes, Kustomize
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind CSS v4 |
+| **State** | Zustand with persist middleware |
+| **Animations** | Framer Motion |
+| **Backend** | Node.js, Express.js, ES Modules |
+| **Database** | MongoDB via Mongoose |
+| **Auth** | JWT (access + refresh), Passport (local, JWT, Google OAuth) |
+| **Real-time** | Socket.io (messaging, typing, presence) |
+| **AI** | Provider-agnostic (OpenAI, Anthropic, Gemini, fallback) |
+| **Validation** | Zod |
 
-## Getting Started
-
-### Prerequisites
-
-- JDK 21+
-- Docker & Docker Compose
-- Gradle 8.12+
-
-### Quick Start
+## Quick Start
 
 ```bash
-# Clone and start all services
-git clone <repo> rickchat
-cd rickchat
+# Install dependencies
+cd server && npm install
+cd ../client && npm install
 
-# Start infrastructure (PostgreSQL, Redis, Qdrant)
-docker compose up -d postgres redis qdrant
+# Configure environment
+cp server/.env.example server/.env
+cp client/.env.local.example client/.env.local
 
-# Run migrations
-./gradlew :core:flywayMigrate
+# Start backend (terminal 1)
+cd server && npm run dev
 
-# Start API Gateway
-./gradlew :api-gateway:run
-
-# Start individual services (in separate terminals)
-./gradlew :auth-service:run
-./gradlew :user-service:run
-# ... etc
-
-# Or start everything with Docker Compose
-docker compose up -d
+# Start frontend (terminal 2)
+cd client && npm run dev
 ```
 
-### Environment Variables
+## Project Structure
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DATABASE_URL` | `jdbc:postgresql://localhost:5432/rickchat` | PostgreSQL connection string |
-| `REDIS_HOST` | `localhost` | Redis host |
-| `QDRANT_HOST` | `localhost` | Qdrant host |
-| `JWT_SECRET` | `...` | JWT signing secret (32+ chars) |
-| `OPENAI_API_KEY` | — | OpenAI API key |
-| `GEMINI_API_KEY` | — | Google Gemini API key |
-| `ANTHROPIC_API_KEY` | — | Anthropic API key |
-| `FIREBASE_PROJECT_ID` | `rickchat` | Firebase project |
-| `GOOGLE_CLOUD_PROJECT` | `rickchat` | GCP project |
-| `ENVIRONMENT` | `development` | Runtime environment |
+```
+├── client/                     # Next.js 15 frontend
+│   ├── src/
+│   │   ├── app/                # App Router pages
+│   │   │   ├── ai-coach/       # AI Coach chat interface
+│   │   │   ├── auth/           # Login & Register
+│   │   │   ├── chat/           # Group chat
+│   │   │   ├── dashboard/      # Main dashboard
+│   │   │   ├── goals/          # Goals (list, detail, create)
+│   │   │   ├── groups/         # Groups (list, create, join)
+│   │   │   ├── leaderboard/    # User & group rankings
+│   │   │   ├── settings/       # User settings
+│   │   │   └── tasks/          # Task management
+│   │   ├── components/
+│   │   │   ├── animations/     # Framer Motion wrappers
+│   │   │   ├── error/          # Error boundary
+│   │   │   └── layout/         # Navbar, Sidebar
+│   │   ├── lib/                # API client, socket, utils
+│   │   ├── store/              # Zustand stores
+│   │   └── types/              # TypeScript interfaces
+│   └── tailwind.config.ts
+│
+├── server/                     # Express.js backend
+│   ├── src/
+│   │   ├── config/             # Database, Passport
+│   │   ├── middleware/         # Auth, error handling
+│   │   ├── models/             # Mongoose schemas
+│   │   ├── routes/             # API route handlers
+│   │   ├── services/           # Business logic
+│   │   │   └── ai/             # Multi-provider AI adapter
+│   │   ├── socket/             # WebSocket handlers
+│   │   └── validators/         # Zod schemas
+│   └── package.json
+│
+├── core/                       # Kotlin shared library
+├── *-service/                  # Kotlin microservices (18 total)
+├── k8s/                        # Kubernetes manifests
+├── load-testing/               # k6 test scripts
+├── docs/                       # Documentation
+└── docker-compose.yml          # Infrastructure stack
+```
 
-## API Documentation
+## API Endpoints
 
-### Authentication Endpoints
-
+### Auth
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/auth/register` | Register new user |
-| POST | `/auth/login` | Login with email/password |
-| POST | `/auth/refresh` | Refresh access token |
-| POST | `/auth/logout` | Invalidate session |
-| POST | `/auth/oauth/{provider}` | OAuth2 login |
-| POST | `/auth/reset-password` | Request password reset |
-| POST | `/auth/reset-password/confirm` | Confirm password reset |
-| POST | `/auth/change-password` | Change password |
+| POST | `/api/auth/register` | Register |
+| POST | `/api/auth/login` | Login |
+| POST | `/api/auth/google` | Google OAuth |
+| POST | `/api/auth/refresh` | Refresh token |
+| POST | `/api/auth/logout` | Logout |
+| GET | `/api/auth/me` | Get profile |
+| PUT | `/api/auth/profile` | Update profile |
 
-### Chat Endpoints
-
+### Goals
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/chat` | List chats |
-| POST | `/chat` | Create chat |
-| GET | `/chat/{id}` | Get chat details |
-| GET | `/chat/{id}/messages` | Get messages |
-| POST | `/chat/{id}/messages` | Send message |
-| DELETE | `/chat/{id}/messages/{msgId}` | Delete message |
-| POST | `/chat/{chatId}/messages/{msgId}/reactions` | Add reaction |
-| WS | `/ws/chat` | WebSocket connection |
+| GET | `/api/goals` | List goals |
+| POST | `/api/goals` | Create goal |
+| GET | `/api/goals/:id` | Get goal |
+| PUT | `/api/goals/:id` | Update goal |
+| DELETE | `/api/goals/:id` | Delete goal |
+| POST | `/api/goals/:id/milestones` | Add milestone |
+| PUT | `/api/goals/:id/milestones/:mid` | Toggle milestone |
 
-### AI Endpoints
-
+### Tasks
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/ai/chat` | Chat completion |
-| POST | `/ai/complete` | Text completion |
-| POST | `/ai/embed` | Generate embeddings |
-| GET | `/ai/models` | List available models |
-| GET | `/ai/providers` | Provider status |
+| GET | `/api/tasks` | List tasks |
+| GET | `/api/tasks/today` | Today's tasks |
+| POST | `/api/tasks` | Create task |
+| PUT | `/api/tasks/:id` | Update task |
+| POST | `/api/tasks/:id/complete` | Complete task |
+| DELETE | `/api/tasks/:id` | Delete task |
 
-### Memory Endpoints
-
+### Groups
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/memory` | List memories |
-| POST | `/memory` | Create memory |
-| GET | `/memory/{id}` | Get memory |
-| PUT | `/memory/{id}` | Update memory |
-| DELETE | `/memory/{id}` | Delete memory |
-| GET | `/memory/search` | Search memories |
+| GET | `/api/groups` | List groups |
+| GET | `/api/groups/my` | My groups |
+| POST | `/api/groups` | Create group |
+| GET | `/api/groups/:id` | Get group |
+| POST | `/api/groups/join/:code` | Join by invite code |
+| POST | `/api/groups/:id/leave` | Leave group |
 
-### Marketplace Endpoints
-
+### AI
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/marketplace` | List items |
-| POST | `/marketplace` | Create item |
-| GET | `/marketplace/{id}` | Get item |
-| GET | `/marketplace/{id}/reviews` | Get reviews |
-| POST | `/marketplace/{id}/reviews` | Create review |
-| GET | `/marketplace/{id}/download` | Download item |
+| POST | `/api/ai/generate-tasks` | AI task generation |
+| POST | `/api/ai/insights` | Productivity insights |
+| POST | `/api/ai/chat` | AI coach chat |
+| POST | `/api/ai/group-adapt` | Group task adaptation |
 
-### Learning Endpoints
-
+### Leaderboard
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/learning/courses` | List courses |
-| POST | `/learning/courses` | Create course |
-| GET | `/learning/courses/{id}/lessons` | Get lessons |
-| POST | `/learning/enrollments` | Enroll in course |
-| POST | `/learning/lessons/{id}/submit` | Submit quiz |
+| GET | `/api/leaderboard/users` | User rankings |
+| GET | `/api/leaderboard/groups` | Group rankings |
+| GET | `/api/leaderboard/user-rank` | Current user rank |
 
-### Complete API Reference
+## Environment Variables
 
-See `docs/api-reference.md` for the complete API specification.
+### Server (`server/.env`)
+| Variable | Required | Default |
+|----------|----------|---------|
+| `PORT` | No | `5000` |
+| `MONGODB_URI` | **Yes** | — |
+| `JWT_SECRET` | **Yes** | — |
+| `JWT_EXPIRES_IN` | No | `7d` |
+| `FRONTEND_URL` | No | `http://localhost:3000` |
+| `AI_PROVIDER` | No | `openai` |
+| `OPENAI_API_KEY` | No | — |
+| `ANTHROPIC_API_KEY` | No | — |
+| `GEMINI_API_KEY` | No | — |
 
-## Database Schema
+### Client (`client/.env.local`)
+| Variable | Required | Default |
+|----------|----------|---------|
+| `NEXT_PUBLIC_API_URL` | No | `http://localhost:5000` |
+| `NEXT_PUBLIC_SOCKET_URL` | No | `http://localhost:5000` |
 
-The database includes 40+ tables organized by domain:
+## AI Provider Support
 
-- **Users & Auth**: `users`, `user_profiles`, `sessions`, `api_keys`, `oauth2_accounts`, `audit_logs`
-- **Chat**: `chats`, `chat_participants`, `messages`, `message_attachments`, `message_reactions`
-- **AI**: `ai_conversations`, `memory_entries`, `memory_access_logs`
-- **Marketplace**: `marketplace_items`, `marketplace_reviews`, `marketplace_downloads`, `marketplace_collections`
-- **Learning**: `courses`, `course_lessons`, `course_quizzes`, `course_enrollments`, `lesson_progress`, `certificates`, `bookmarks`, `flashcards`
-- **Payments**: `payment_methods`, `payments`, `payment_items`, `revenue_shares`
-- **Subscriptions**: `subscription_plans`, `subscriptions`
-- **Files**: `files`
-- **Notifications**: `notifications`, `notification_templates`, `notification_devices`
-- **Translation**: `translations`, `live_captions`
-- **Accessibility**: `accessibility_sessions`, `screen_readers`, `ocr_results`
-- **Analytics**: `analytics_events`, `analytics_page_views`, `analytics_daily_stats`
-- **Admin**: `admin_actions`, `admin_reports`, `system_config`
-- **System**: `background_jobs`
+The AI service supports multiple providers through a common adapter interface:
 
-Full schema in `core/src/main/resources/db/migration/V1__Core_Schema.sql`
-
-## Security
-
-- **Authentication**: JWT (access + refresh tokens), Firebase Auth, OAuth2
-- **Authorization**: Role-Based Access Control (RBAC) with 6 roles and 25+ permissions
-- **Password Security**: bcrypt hashing (cost factor 12)
-- **API Security**: Rate limiting, CORS, HSTS, CSRF protection, input validation
-- **Data Protection**: SQL injection prevention via parameterized queries, encryption at rest
-- **Audit**: Comprehensive audit logging for all administrative actions
-
-## Testing
-
-```bash
-# Unit tests
-./gradlew test
-
-# Integration tests
-./gradlew integrationTest
-
-# Load testing (requires k6)
-k6 run load-testing/chat-scenario.js
-k6 run load-testing/marketplace-scenario.js
-
-# WebSocket load testing
-k6 run load-testing/websocket-test.js
+```env
+AI_PROVIDER=openai       # OpenAI (default)
+AI_PROVIDER=anthropic    # Anthropic Claude
+AI_PROVIDER=gemini       # Google Gemini
+# If no API key is configured, falls back to mock responses
 ```
 
 ## Deployment
 
 ### Docker
-
 ```bash
-# Build all services
-docker compose build
-
-# Start full stack
 docker compose up -d
 ```
 
 ### Kubernetes
-
 ```bash
-# Deploy to cluster
 kubectl apply -k k8s/overlays/production
-
-# Check status
-kubectl get pods -n rickchat
-kubectl get services -n rickchat
 ```
 
-### Google Cloud Run
-
-```bash
-# Build and push
-gcloud builds submit --tag gcr.io/rickchat/api-gateway
-gcloud builds submit --tag gcr.io/rickchat/auth-service
-# ... for each service
-
-# Deploy
-gcloud run deploy api-gateway --image gcr.io/rickchat/api-gateway
-```
-
-## Monitoring
-
-- **Metrics**: Prometheus metrics at `/metrics` endpoint
-- **Tracing**: OpenTelemetry with OTLP exporter
-- **Logging**: Structured JSON logging via Logback, Cloud Logging integration
-- **Health**: `/health` endpoint with dependency checks
-- **Dashboards**: Cloud Monitoring dashboards
-
-## Project Structure
-
-```
-rickchat/
-├── core/                          # Shared library
-│   └── src/main/kotlin/com/rickchat/core/
-│       ├── config/                # App configuration (HOCON)
-│       ├── di/                    # Koin modules
-│       ├── security/              # JWT, Password, Rate Limiting
-│       ├── database/              # PostgreSQL, Redis, Qdrant clients
-│       ├── cache/                 # Redis-based caching
-│       ├── queue/                 # PubSub / In-memory queue
-│       ├── storage/               # GCS file storage
-│       ├── monitoring/            # Metrics, Tracing
-│       ├── model/                 # Shared DTOs (UserId, Role, ApiResponse)
-│       ├── error/                 # Exception hierarchy, error handler
-│       ├── logging/               # Structured logger
-│       └── util/                  # Validator, IdGenerator
-├── api-gateway/                   # Edge proxy (port 8080)
-├── auth-service/                  # Auth (port 8081)
-├── user-service/                  # Users (port 8082)
-├── chat-service/                  # Chat (port 8083)
-├── ai-gateway/                    # AI routing (port 8084)
-├── memory-service/                # Memory (port 8085)
-├── marketplace-service/           # Marketplace (port 8086)
-├── learning-service/              # Learning (port 8087)
-├── translation-service/           # Translation (port 8088)
-├── accessibility-service/         # Accessibility (port 8089)
-├── camera-service/                # Camera AI (port 8090)
-├── voice-service/                 # Voice AI (port 8091)
-├── notification-service/          # Notifications (port 8092)
-├── payment-service/               # Payments (port 8093)
-├── subscription-service/          # Subscriptions (port 8094)
-├── file-service/                  # Files (port 8095)
-├── analytics-service/             # Analytics (port 8096)
-├── admin-service/                 # Admin (port 8097)
-├── k8s/                           # Kubernetes manifests
-├── load-testing/                  # k6 load test scripts
-├── docs/                          # Documentation
-├── docker-compose.yml             # Local development stack
-├── Dockerfile                     # API Gateway container
-├── Dockerfile.service             # Service container template
-├── build.gradle.kts               # Root build
-└── settings.gradle.kts            # Multi-module settings
-```
-
-## License
-
-RickChat AI Operating System — Internal Use
+### Render (Node.js backend)
+The `render.yaml` configuration deploys the Node.js server. Set environment variables via the Render dashboard.

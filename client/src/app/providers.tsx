@@ -7,6 +7,7 @@ import { authAPI } from '@/lib/api';
 import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
 import Navbar from '@/components/layout/Navbar';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const protectedRoutes = ['/dashboard', '/goals', '/tasks', '/groups', '/chat', '/leaderboard', '/ai-coach', '/settings'];
@@ -62,7 +63,9 @@ export function Providers({ children }: { children: ReactNode }) {
   if (isAuthPage) {
     return (
       <>
-        <AnimatePresence mode="wait">{children}</AnimatePresence>
+        <AnimatePresence mode="wait">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </AnimatePresence>
         <Toaster
           position="top-right"
           toastOptions={{
@@ -79,7 +82,9 @@ export function Providers({ children }: { children: ReactNode }) {
       <div className="flex lg:pt-0 pt-14 pb-16 lg:pb-0">
         <Sidebar />
         <main className="flex-1 min-h-screen p-4 lg:p-8 max-w-7xl mx-auto w-full">
-          <AnimatePresence mode="wait">{children}</AnimatePresence>
+          <AnimatePresence mode="wait">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </AnimatePresence>
         </main>
       </div>
       <Toaster

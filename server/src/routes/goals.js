@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Goal from '../models/Goal.js';
+import User from '../models/User.js';
 import { authenticate } from '../middleware/auth.js';
 import { catchAsync, AppError } from '../middleware/errorHandler.js';
 import { validate, goalSchema } from '../validators/schemas.js';
@@ -48,7 +49,7 @@ router.post('/', validate(goalSchema), catchAsync(async (req, res) => {
     user: req.user.id,
   });
 
-  await req.user.model('User').findByIdAndUpdate(req.user.id, {
+  await User.findByIdAndUpdate(req.user.id, {
     $push: { goals: goal._id },
   });
 
@@ -90,7 +91,7 @@ router.put('/:id', catchAsync(async (req, res) => {
 router.delete('/:id', catchAsync(async (req, res) => {
   const goal = await Goal.findOneAndDelete({ _id: req.params.id, user: req.user.id });
   if (!goal) throw new AppError('Goal not found', 404, 'NOT_FOUND');
-  await req.user.model('User').findByIdAndUpdate(req.user.id, {
+  await User.findByIdAndUpdate(req.user.id, {
     $pull: { goals: goal._id },
   });
   res.json({ success: true, message: 'Goal deleted' });

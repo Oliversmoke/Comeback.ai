@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/auth.js';
 import { catchAsync, AppError } from '../middleware/errorHandler.js';
 import { validate, aiPromptSchema } from '../validators/schemas.js';
 import { generateDailyTasks, generateInsights, chatWithCoach } from '../services/openai.js';
+import User from '../models/User.js';
 import Goal from '../models/Goal.js';
 import Task from '../models/Task.js';
 import Group from '../models/Group.js';
@@ -12,7 +13,7 @@ const router = Router();
 router.use(authenticate);
 
 router.post('/generate-tasks', catchAsync(async (req, res) => {
-  const user = await req.user.model('User').findById(req.user.id);
+  const user = await User.findById(req.user.id);
   const goals = await Goal.find({ user: req.user.id, status: 'active' });
   const recentTasks = await Task.find({ user: req.user.id })
     .sort({ createdAt: -1 })
@@ -45,7 +46,7 @@ router.post('/generate-tasks', catchAsync(async (req, res) => {
 }));
 
 router.post('/insights', catchAsync(async (req, res) => {
-  const user = await req.user.model('User').findById(req.user.id);
+  const user = await User.findById(req.user.id);
   const goals = await Goal.find({ user: req.user.id });
   const tasks = await Task.find({ user: req.user.id }).sort({ createdAt: -1 }).limit(30);
   const groupCount = await Group.countDocuments({ 'members.user': req.user.id });
@@ -57,7 +58,7 @@ router.post('/insights', catchAsync(async (req, res) => {
 
 router.post('/chat', validate(aiPromptSchema), catchAsync(async (req, res) => {
   const { prompt, context } = req.validatedBody;
-  const user = await req.user.model('User').findById(req.user.id);
+  const user = await User.findById(req.user.id);
 
   const userContext = context || {};
   if (!context?.goals) {
