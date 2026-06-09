@@ -1,0 +1,136 @@
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+export const api = axios.create({
+  baseURL: `${API_URL}/api`,
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
+});
+
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) throw new Error('No refresh token');
+        const { data } = await axios.post(`${API_URL}/api/auth/refresh`, { refreshToken });
+        localStorage.setItem('accessToken', data.data.accessToken);
+        localStorage.setItem('refreshToken', data.data.refreshToken);
+        originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
+        return api(originalRequest);
+      } catch {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export const authAPI = {
+  register: (data: { email: string; username: string; password: string; displayName?: string }) =>
+    api.post('/auth/register', data),
+  login: (data: { email: string; password: string }) =>
+    api.post('/auth/login', data),
+  googleLogin: (idToken: string) =>
+    api.post('/auth/google', { idToken }),
+  refresh: (refreshToken: string) =>
+    api.post('/auth/refresh', { refreshToken }),
+  logout: () =>
+    api.post('/auth/logout'),
+  getProfile: () =>
+    api.get('/auth/me'),
+  updateProfile: (data: Record<string, string>) =>
+    api.put('/auth/profile', data),
+};
+
+export const goalsAPI = {
+  list: (params?: Record<string, string>) =>
+    api.get('/goals', { params }),
+  get: (id: string) =>
+    api.get(`/goals/${id}`),
+  create: (data: Partial<Goal>) =>
+    api.post('/goals', data),
+  update: (id: string, data: Partial<Goal>) =>
+    api.put(`/goals/${id}`, data),
+  delete: (id: string) =>
+    api.delete(`/goals/${id}`),
+  addMilestone: (id: string, title: string) =>
+    api.post(`/goals/${id}/milestones`, { title }),
+  toggleMilestone: (goalId: string, milestoneId: string) =>
+    api.put(`/goals/${goalId}/milestones/${milestoneId}`),
+};
+
+export const groupsAPI = {
+  list: (params?: Record<string, string>) =>
+    api.get('/groups', { params }),
+  getMy: () =>
+    api.get('/groups/my'),
+  get: (id: string) =>
+    api.get(`/groups/${id}`),
+  create: (data: Partial<Group>) =>
+    api.post('/groups', data),
+  update: (id: string, data: Partial<Group>) =>
+    api.put(`/groups/${id}`, data),
+  join: (inviteCode: string) =>
+    api.post(`/groups/join/${inviteCode}`),
+  leave: (id: string) =>
+    api.post(`/groups/${id}/leave`),
+  getMessages: (id: string, params?: Record<string, string>) =>
+    api.get(`/groups/${id}/messages`, { params }),
+};
+
+export const tasksAPI = {
+  list: (params?: Record<string, string>) =>
+    api.get('/tasks', { params }),
+  getToday: () =>
+    api.get('/tasks/today'),
+  get: (id: string) =>
+    api.get(`/tasks/${id}`),
+  create: (data: Partial<Task>) =>
+    api.post('/tasks', data),
+  update: (id: string, data: Partial<Task>) =>
+    api.put(`/tasks/${id}`, data),
+  delete: (id: string) =>
+    api.delete(`/tasks/${id}`),
+  complete: (id: string) =>
+    api.post(`/tasks/${id}/complete`),
+};
+
+export const leaderboardAPI = {
+  getUsers: (params?: Record<string, string>) =>
+    api.get('/leaderboard/users', { params }),
+  getGroups: (params?: Record<string, string>) =>
+    api.get('/leaderboard/groups', { params }),
+  getUserRank: () =>
+    api.get('/leaderboard/user-rank'),
+};
+
+export const aiAPI = {
+  generateTasks: () =>
+    api.post('/ai/generate-tasks'),
+  getInsights: () =>
+    api.post('/ai/insights'),
+  chat: (data: { prompt: string; context?: any }) =>
+    api.post('/ai/chat', data),
+  getGroupAdaptations: (groupId: string) =>
+    api.post('/ai/group-adapt', { groupId }),
+};
