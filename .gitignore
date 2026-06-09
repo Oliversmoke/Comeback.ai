@@ -9,3 +9,9 @@ build/
 .DS_Store
 coverage/
 .turbo/
+
+# Capacitor / Mobile
+client/ios/
+client/android/
+client/capacitor-cordova-android-plugins/
+client/cordova-plugins/

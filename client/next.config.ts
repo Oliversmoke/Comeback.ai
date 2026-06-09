@@ -1,17 +1,12 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  output: process.env.NEXT_OUTPUT === 'standalone' ? undefined : 'export',
   images: {
-    domains: ['ui-avatars.com', 'lh3.googleusercontent.com', 'storage.googleapis.com'],
+    unoptimized: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/:path*`,
-      },
-    ];
-  },
+  trailingSlash: true,
+  skipTrailingSlashRedirect: true,
 };
 
 export default nextConfig;
