@@ -109,7 +109,7 @@ export interface Task {
   updatedAt: string;
 }
 
-export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'expired';
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'expired' | 'pending_review';
 
 export interface Message {
   _id: string;

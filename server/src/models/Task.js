@@ -9,7 +9,7 @@ const taskSchema = new mongoose.Schema({
   priority: { type: String, enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' },
   status: {
     type: String,
-    enum: ['pending', 'in_progress', 'completed', 'skipped', 'expired'],
+    enum: ['pending', 'in_progress', 'completed', 'skipped', 'expired', 'pending_review'],
     default: 'pending',
   },
   dueDate: Date,
@@ -22,6 +22,17 @@ const taskSchema = new mongoose.Schema({
     difficulty: String,
     category: String,
     timeEstimate: Number,
+  },
+  proof: {
+    text: String,
+    image: String,
+    submittedAt: Date,
+  },
+  aiReview: {
+    questions: [{ question: String }],
+    answers: [{ question: String, answer: String }],
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    reviewedAt: Date,
   },
   isDailyTask: { type: Boolean, default: false },
   dateFor: Date,

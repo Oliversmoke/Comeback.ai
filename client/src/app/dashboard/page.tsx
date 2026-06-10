@@ -13,6 +13,7 @@ import {
   AnimatedPage, FadeIn, StaggerContainer, StaggerItem, ScaleIn,
 } from '@/components/animations/MotionComponents';
 import { calculateXpProgress, getCategoryColor, getPriorityColor, getStatusColor, formatTimeAgo } from '@/lib/utils';
+import TaskReviewModal from '@/components/features/TaskReviewModal';
 import toast from 'react-hot-toast';
 import type { Task, Goal, LeaderboardEntry } from '@/types';
 
@@ -24,6 +25,7 @@ export default function DashboardPage() {
   const [userRank, setUserRank] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [reviewTask, setReviewTask] = useState<{ task: Task; questions: string[] } | null>(null);
 
   useEffect(() => {
     loadDashboard();
@@ -32,15 +34,28 @@ export default function DashboardPage() {
   const loadDashboard = async () => {
     try {
       const [tasksRes, goalsRes, rankRes] = await Promise.all([
-        tasksAPI.getToday(),
-        goalsAPI.list({ status: 'active', limit: '5' }),
-        leaderboardAPI.getUserRank(),
+        tasksAPI.getToday().catch((e: unknown) => {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error(`[Dashboard] Failed to load tasks: ${msg}`);
+          return null;
+        }),
+        goalsAPI.list({ status: 'active', limit: '5' }).catch((e: unknown) => {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error(`[Dashboard] Failed to load goals: ${msg}`);
+          return null;
+        }),
+        leaderboardAPI.getUserRank().catch((e: unknown) => {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error(`[Dashboard] Failed to load rank: ${msg}`);
+          return null;
+        }),
       ]);
-      setTodayTasks(tasksRes.data.data);
-      setGoals(goalsRes.data.data);
-      setUserRank(rankRes.data.data);
+      if (tasksRes?.data?.data) setTodayTasks(tasksRes.data.data);
+      if (goalsRes?.data?.data) setGoals(goalsRes.data.data);
+      if (rankRes?.data?.data) setUserRank(rankRes.data.data);
     } catch (err) {
-      console.error('Dashboard load error:', err);
+      console.error('[Dashboard] Unexpected load error:', err);
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -69,6 +84,13 @@ export default function DashboardPage() {
   const completeTask = async (taskId: string) => {
     try {
       const { data } = await tasksAPI.complete(taskId);
+      if (data.data.needsReview) {
+        const task = todayTasks.find((t) => t._id === taskId);
+        if (task) {
+          setReviewTask({ task, questions: data.data.questions });
+        }
+        return;
+      }
       if (data.data.xp) {
         updateXp(data.data.xp.totalXp, data.data.xp.level);
       }
@@ -80,6 +102,11 @@ export default function DashboardPage() {
     } catch {
       toast.error('Failed to complete task');
     }
+  };
+
+  const handleReviewApproved = (taskId: string) => {
+    setTodayTasks((prev) => prev.filter((t) => t._id !== taskId));
+    toast.success('Task completed! +XP');
   };
 
   const xpProgress = calculateXpProgress(user?.xp || 0);
@@ -418,6 +445,16 @@ export default function DashboardPage() {
           </ScaleIn>
         </div>
       </div>
+
+      {reviewTask && (
+        <TaskReviewModal
+          task={reviewTask.task}
+          questions={reviewTask.questions}
+          isOpen={!!reviewTask}
+          onClose={() => setReviewTask(null)}
+          onApproved={handleReviewApproved}
+        />
+      )}
     </AnimatedPage>
   );
 }

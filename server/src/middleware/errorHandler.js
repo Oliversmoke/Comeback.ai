@@ -12,8 +12,9 @@ export const errorHandler = (err, req, res, _next) => {
   err.statusCode = err.statusCode || 500;
   err.code = err.code || 'INTERNAL_ERROR';
 
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Error:', err);
+  console.error(`[${err.statusCode}] ${req.method} ${req.originalUrl}:`, err.message);
+  if (process.env.NODE_ENV === 'development' || err.statusCode >= 500) {
+    console.error(err);
   }
 
   if (err.name === 'ValidationError') {

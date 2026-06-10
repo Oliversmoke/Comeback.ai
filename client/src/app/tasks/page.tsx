@@ -9,6 +9,7 @@ import { tasksAPI, aiAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { AnimatedPage, FadeIn, StaggerContainer, StaggerItem } from '@/components/animations/MotionComponents';
 import { getPriorityColor, getStatusColor, formatTimeAgo } from '@/lib/utils';
+import TaskReviewModal from '@/components/features/TaskReviewModal';
 import toast from 'react-hot-toast';
 import type { Task } from '@/types';
 
@@ -18,6 +19,7 @@ export default function TasksPage() {
   const [filter, setFilter] = useState('pending');
   const [search, setSearch] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [reviewTask, setReviewTask] = useState<{ task: Task; questions: string[] } | null>(null);
   const { updateXp, updateStreak } = useAuthStore();
 
   useEffect(() => { loadTasks(); }, [filter]);
@@ -35,11 +37,23 @@ export default function TasksPage() {
   const completeTask = async (taskId: string) => {
     try {
       const { data } = await tasksAPI.complete(taskId);
+      if (data.data.needsReview) {
+        const task = tasks.find((t) => t._id === taskId);
+        if (task) {
+          setReviewTask({ task, questions: data.data.questions });
+        }
+        return;
+      }
       if (data.data.xp) updateXp(data.data.xp.totalXp, data.data.xp.level);
       if (data.data.streak) updateStreak(data.data.streak);
       setTasks((prev) => prev.filter((t) => t._id !== taskId));
       toast.success(`Task completed! +${data.data.xp?.xpAwarded || 10}XP`);
     } catch { toast.error('Failed to complete task'); }
+  };
+
+  const handleReviewApproved = (taskId: string) => {
+    setTasks((prev) => prev.filter((t) => t._id !== taskId));
+    toast.success('Task completed! +XP');
   };
 
   const deleteTask = async (id: string) => {
@@ -88,7 +102,7 @@ export default function TasksPage() {
 
       <FadeIn>
         <div className="flex flex-wrap gap-3 mb-6">
-          {['all', 'pending', 'in_progress', 'completed'].map((s) => (
+          {['all', 'pending', 'in_progress', 'pending_review', 'completed'].map((s) => (
             <button
               key={s}
               onClick={() => setFilter(s)}
@@ -133,10 +147,16 @@ export default function TasksPage() {
                 className="glass-card-hover p-4 flex items-center gap-4"
               >
                 <button
-                  onClick={() => completeTask(task._id)}
-                  className="w-6 h-6 rounded-full border-2 border-dark-400 flex items-center justify-center hover:border-green-400 hover:bg-green-500/20 transition-all flex-shrink-0"
+                  onClick={() => task.status === 'pending_review' ? completeTask(task._id) : completeTask(task._id)}
+                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                    task.status === 'pending_review'
+                      ? 'border-purple-400 bg-purple-500/20'
+                      : 'border-dark-400 hover:border-green-400 hover:bg-green-500/20'
+                  }`}
                 >
-                  <div className="w-3 h-3 rounded-full hover:bg-green-400 transition-colors" />
+                  <div className={`w-3 h-3 rounded-full transition-colors ${
+                    task.status === 'pending_review' ? 'bg-purple-400 animate-pulse' : 'hover:bg-green-400'
+                  }`} />
                 </button>
 
                 <div className="flex-1 min-w-0">
@@ -171,6 +191,16 @@ export default function TasksPage() {
             </StaggerItem>
           ))}
         </StaggerContainer>
+      )}
+
+      {reviewTask && (
+        <TaskReviewModal
+          task={reviewTask.task}
+          questions={reviewTask.questions}
+          isOpen={!!reviewTask}
+          onClose={() => setReviewTask(null)}
+          onApproved={handleReviewApproved}
+        />
       )}
     </AnimatedPage>
   );

@@ -23,8 +23,14 @@ router.post('/generate-tasks', catchAsync(async (req, res) => {
 
   const createdTasks = [];
   for (const taskData of tasks) {
+    const goalId = taskData.goalId || (goals.length === 1 ? goals[0]._id : null);
+    const matchedGoal = !goalId && goals.length > 0
+      ? goals.find((g) => taskData.category === g.category || taskData.title.toLowerCase().includes(g.title.toLowerCase().split(' ').slice(0, 2).join(' ')))
+      : null;
+
     const task = await Task.create({
       user: req.user.id,
+      goal: goalId || matchedGoal?._id || undefined,
       title: taskData.title,
       description: taskData.description || '',
       priority: taskData.difficulty === 'hard' ? 'high' : taskData.difficulty === 'easy' ? 'low' : 'medium',

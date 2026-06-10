@@ -113,6 +113,8 @@ export const tasksAPI = {
     api.delete(`/tasks/${id}`),
   complete: (id: string) =>
     api.post(`/tasks/${id}/complete`),
+  submitProof: (id: string, data: { answers: { question: string; answer: string }[]; text?: string }) =>
+    api.post(`/tasks/${id}/submit-proof`, data),
 };
 
 export const leaderboardAPI = {

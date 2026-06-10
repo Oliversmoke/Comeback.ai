@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { catchAsync } from '../middleware/errorHandler.js';
 import { getLeaderboard, getGroupLeaderboard } from '../services/xpService.js';
+import User from '../models/User.js';
 
 const router = Router();
 
@@ -18,7 +19,6 @@ router.get('/groups', catchAsync(async (req, res) => {
 }));
 
 router.get('/user-rank', authenticate, catchAsync(async (req, res) => {
-  const { User } = (await import('../models/User.js'));
   const user = await User.findById(req.user.id);
   if (!user) return res.json({ success: true, data: { rank: null, totalUsers: 0 } });
 
