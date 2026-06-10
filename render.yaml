@@ -1,12 +1,11 @@
 services:
   - type: web
-    name: rickchat-api
+    name: comeback-ai-api
     env: node
-    plan: starter
+    plan: free
     buildCommand: cd server && npm install
     startCommand: cd server && node src/server.js
     healthCheckPath: /health
-    healthCheckTimeout: 10
     envVars:
       - key: NODE_ENV
         value: production
@@ -16,32 +15,7 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: JWT_EXPIRES_IN
-        value: "7d"
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: ANTHROPIC_API_KEY
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: AI_PROVIDER
-        value: openai
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
-      - key: GOOGLE_CALLBACK_URL
-        sync: false
       - key: FRONTEND_URL
-        value: https://rickchat.vercel.app
-
-  - type: web
-    name: rickchat-client
-    env: static
-    buildCommand: cd client && npm install && npm run build
-    staticPublishPath: client/out
-    envVars:
-      - key: NEXT_PUBLIC_API_URL
-        value: https://rickchat-api.onrender.com
-      - key: NEXT_PUBLIC_SOCKET_URL
-        value: wss://rickchat-api.onrender.com
+        value: https://comeback-ai.vercel.app
+      - key: AI_PROVIDER
+        value: fallback
