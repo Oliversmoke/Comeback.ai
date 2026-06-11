@@ -2,6 +2,20 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+function updatePersistedTokens(accessToken: string, refreshToken: string) {
+  try {
+    const raw = localStorage.getItem('auth-storage');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.state) {
+        parsed.state.accessToken = accessToken;
+        parsed.state.refreshToken = refreshToken;
+        localStorage.setItem('auth-storage', JSON.stringify(parsed));
+      }
+    }
+  } catch {}
+}
+
 export const api = axios.create({
   baseURL: `${API_URL}/api`,
   headers: { 'Content-Type': 'application/json' },
@@ -28,14 +42,16 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) throw new Error('No refresh token');
         const { data } = await axios.post(`${API_URL}/api/auth/refresh`, { refreshToken });
-        localStorage.setItem('accessToken', data.data.accessToken);
-        localStorage.setItem('refreshToken', data.data.refreshToken);
-        originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
+        const newAccessToken = data.data.accessToken;
+        const newRefreshToken = data.data.refreshToken;
+        localStorage.setItem('accessToken', newAccessToken);
+        localStorage.setItem('refreshToken', newRefreshToken);
+        updatePersistedTokens(newAccessToken, newRefreshToken);
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
         if (typeof window !== 'undefined') {
           window.location.href = '/auth/login';
         }
@@ -60,6 +76,10 @@ export const authAPI = {
     api.get('/auth/me'),
   updateProfile: (data: Record<string, string>) =>
     api.put('/auth/profile', data),
+  forgotPassword: (email: string) =>
+    api.post('/auth/forgot-password', { email }),
+  resetPassword: (token: string, password: string) =>
+    api.post('/auth/reset-password', { token, password }),
 };
 
 export const goalsAPI = {

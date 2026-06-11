@@ -21,14 +21,24 @@ import groupRoutes from './routes/groups.js';
 import taskRoutes from './routes/tasks.js';
 import leaderboardRoutes from './routes/leaderboard.js';
 import aiRoutes from './routes/ai.js';
+import backupRoutes from './routes/backup.js';
+import { startBackupSchedule } from './services/backupService.js';
 
 const app = express();
 const server = http.createServer(app);
 
 // Security
 app.use(helmet({ contentSecurityPolicy: false }));
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:3001',
+].filter(Boolean);
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -84,6 +94,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/backup', backupRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -121,6 +132,15 @@ const startServer = async () => {
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🔗 URL: http://localhost:${PORT}`);
       console.log(`💬 WebSocket: ws://localhost:${PORT}\n`);
+      startBackupSchedule();
+    });
+
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use. Try a different port or kill the existing process.`);
+        process.exit(1);
+      }
+      throw error;
     });
   } catch (error) {
     console.error('Failed to start server:', error);

@@ -69,19 +69,24 @@ export default function RegisterPage() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dark-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-dark-900 p-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-dots-pattern opacity-50" />
+      <div className="absolute top-1/3 -left-40 w-96 h-96 bg-accent-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/3 -right-40 w-96 h-96 bg-primary-500/5 rounded-full blur-3xl" />
+
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
         <div className="text-center mb-8">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 mb-4"
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 mb-4 shadow-lg shadow-primary-500/25"
           >
             <Target className="w-8 h-8 text-white" />
           </motion.div>
@@ -102,10 +107,10 @@ export default function RegisterPage() {
                 type="email"
                 value={form.email}
                 onChange={(e) => updateField('email', e.target.value)}
-                className={`input-field ${errors.email ? 'border-red-500' : ''}`}
+                className={`input-field ${errors.email ? 'input-field-error' : ''}`}
                 placeholder="you@example.com"
               />
-              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+              {errors.email && <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-red-400" /> {errors.email}</p>}
             </div>
 
             <div>
@@ -114,10 +119,10 @@ export default function RegisterPage() {
                 type="text"
                 value={form.username}
                 onChange={(e) => updateField('username', e.target.value)}
-                className={`input-field ${errors.username ? 'border-red-500' : ''}`}
+                className={`input-field ${errors.username ? 'input-field-error' : ''}`}
                 placeholder="cooluser123"
               />
-              {errors.username && <p className="text-red-400 text-xs mt-1">{errors.username}</p>}
+              {errors.username && <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-red-400" /> {errors.username}</p>}
             </div>
 
             <div>
@@ -127,25 +132,25 @@ export default function RegisterPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={form.password}
                   onChange={(e) => updateField('password', e.target.value)}
-                  className={`input-field pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`input-field pr-10 ${errors.password ? 'input-field-error' : ''}`}
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-200 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
-              <div className="mt-2 space-y-1">
+              {errors.password && <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-red-400" /> {errors.password}</p>}
+              <div className="mt-3 space-y-1.5">
                 {requirements.map((req, i) => (
                   <div key={i} className="flex items-center gap-2 text-xs">
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center ${req.met ? 'bg-green-500/20 text-green-400' : 'bg-dark-700 text-dark-400'}`}>
+                    <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-all ${req.met ? 'bg-green-500/20 text-green-400' : 'bg-dark-700 text-dark-400'}`}>
                       {req.met ? <Check className="w-3 h-3" /> : <div className="w-1.5 h-1.5 rounded-full bg-dark-400" />}
                     </div>
-                    <span className={req.met ? 'text-green-400' : 'text-dark-400'}>{req.label}</span>
+                    <span className={`transition-colors ${req.met ? 'text-green-400' : 'text-dark-400'}`}>{req.label}</span>
                   </div>
                 ))}
               </div>
@@ -157,10 +162,10 @@ export default function RegisterPage() {
                 type="password"
                 value={form.confirmPassword}
                 onChange={(e) => updateField('confirmPassword', e.target.value)}
-                className={`input-field ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                className={`input-field ${errors.confirmPassword ? 'input-field-error' : ''}`}
                 placeholder="••••••••"
               />
-              {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>}
+              {errors.confirmPassword && <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-red-400" /> {errors.confirmPassword}</p>}
             </div>
 
             <motion.button
@@ -183,7 +188,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-dark-400 text-sm">
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-primary-400 hover:text-primary-300 font-medium">
+              <Link href="/auth/login" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
                 Sign in
               </Link>
             </p>

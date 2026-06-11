@@ -52,19 +52,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dark-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-dark-900 p-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-dots-pattern opacity-50" />
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-accent-500/5 rounded-full blur-3xl" />
+
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
         <div className="text-center mb-8">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 mb-4"
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 mb-4 shadow-lg shadow-primary-500/25"
           >
             <Target className="w-8 h-8 text-white" />
           </motion.div>
@@ -85,10 +90,10 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`input-field ${errors.email ? 'border-red-500' : ''}`}
+                className={`input-field ${errors.email ? 'input-field-error' : ''}`}
                 placeholder="you@example.com"
               />
-              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+              {errors.email && <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-red-400" /> {errors.email}</p>}
             </div>
 
             <div>
@@ -98,18 +103,24 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`input-field pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`input-field pr-10 ${errors.password ? 'input-field-error' : ''}`}
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-200 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
+              {errors.password && <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-red-400" /> {errors.password}</p>}
+            </div>
+
+            <div className="flex justify-end">
+              <Link href="/auth/forgot-password" className="text-sm text-primary-400 hover:text-primary-300 transition-colors">
+                Forgot password?
+              </Link>
             </div>
 
             <motion.button
@@ -132,7 +143,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-dark-400 text-sm">
               Don&apos;t have an account?{' '}
-              <Link href="/auth/register" className="text-primary-400 hover:text-primary-300 font-medium">
+              <Link href="/auth/register" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
                 Create one
               </Link>
             </p>

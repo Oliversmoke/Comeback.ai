@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, Sparkles, Target, Lightbulb, TrendingUp, User, MessageSquare } from 'lucide-react';
+import { Bot, Send, Sparkles, Target, Lightbulb, TrendingUp, User, MessageSquare, LockKeyhole } from 'lucide-react';
 import { aiAPI } from '@/lib/api';
 import { AnimatedPage, FadeIn } from '@/components/animations/MotionComponents';
+import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 
 interface ChatMessage {
@@ -13,7 +14,10 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+const OWNER_EMAIL = process.env.NEXT_PUBLIC_OWNER_EMAIL;
+
 export default function AICoachPage() {
+  const { user } = useAuthStore();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'coach',
@@ -25,6 +29,8 @@ export default function AICoachPage() {
   const [loading, setLoading] = useState(false);
   const [insights, setInsights] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const isOwner = OWNER_EMAIL ? user?.email === OWNER_EMAIL : false;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -88,6 +94,29 @@ export default function AICoachPage() {
     }
   };
 
+  if (!isOwner) {
+    return (
+      <AnimatedPage>
+        <div className="min-h-[80vh] flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="text-center max-w-lg"
+          >
+            <div className="w-24 h-24 rounded-3xl bg-dark-700/50 flex items-center justify-center mx-auto mb-6">
+              <LockKeyhole className="w-12 h-12 text-dark-400" />
+            </div>
+            <h1 className="text-3xl font-bold mb-3 text-dark-300">AI Coach</h1>
+            <p className="text-dark-500 mb-8 text-lg">
+              This feature is currently in private preview and not yet available for your account.
+            </p>
+          </motion.div>
+        </div>
+      </AnimatedPage>
+    );
+  }
+
   return (
     <AnimatedPage>
       <FadeIn>
@@ -113,7 +142,6 @@ export default function AICoachPage() {
       </FadeIn>
 
       <div className="grid lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
-        {/* Chat Area */}
         <div className="lg:col-span-2 glass-card flex flex-col">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <AnimatePresence>
@@ -209,7 +237,6 @@ export default function AICoachPage() {
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-4">
           <div className="glass-card p-5">
             <h3 className="font-semibold flex items-center gap-2 mb-3">
@@ -283,7 +310,7 @@ export default function AICoachPage() {
                   onClick={() => { setInput(q); }}
                   className="w-full text-left text-sm text-dark-400 hover:text-dark-200 p-2 rounded-lg hover:bg-dark-700/50 transition-all"
                 >
-                  "{q}"
+                  &ldquo;{q}&rdquo;
                 </button>
               ))}
             </div>

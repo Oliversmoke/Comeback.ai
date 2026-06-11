@@ -46,6 +46,8 @@ const userSchema = new mongoose.Schema({
   isOnline: { type: Boolean, default: false },
   lastSeen: Date,
   refreshToken: { type: String, select: false },
+  resetPasswordToken: { type: String, select: false },
+  resetPasswordExpires: { type: Date, select: false },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
