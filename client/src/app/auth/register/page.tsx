@@ -52,7 +52,7 @@ export default function RegisterPage() {
         password: form.password,
       });
       setAuth(data.data.user, data.data.accessToken, data.data.refreshToken);
-      toast.success('Account created! Welcome to RickChat.');
+      toast.success('Account created! Welcome to comeback.AI.');
       router.push('/dashboard');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Registration failed');
@@ -90,7 +90,7 @@ export default function RegisterPage() {
           >
             <Target className="w-8 h-8 text-white" />
           </motion.div>
-          <h1 className="text-3xl font-bold gradient-text">Join RickChat</h1>
+          <h1 className="text-3xl font-bold gradient-text">Join comeback.AI</h1>
           <p className="text-dark-400 mt-2">Start achieving your goals today</p>
         </div>
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Plus, Filter, Search, MoreVertical, CheckCircle2, Clock, Trash2 } from 'lucide-react';
+import { Target, Plus, Search, MoreVertical, Clock } from 'lucide-react';
 import { goalsAPI } from '@/lib/api';
 import { AnimatedPage, FadeIn, StaggerContainer, StaggerItem } from '@/components/animations/MotionComponents';
 import { getCategoryColor, getStatusColor, formatDate } from '@/lib/utils';
@@ -43,8 +43,8 @@ export default function GoalsPage() {
       <FadeIn>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Goals</h1>
-            <p className="text-dark-400 text-sm mt-1">Track and achieve what matters</p>
+            <h1 className="page-header">Goals</h1>
+            <p className="page-subtitle">Track and achieve what matters</p>
           </div>
           <Link href="/goals/new" className="btn-primary flex items-center gap-2">
             <Plus className="w-4 h-4" /> New Goal
@@ -55,17 +55,17 @@ export default function GoalsPage() {
       <FadeIn>
         <div className="flex flex-wrap gap-3 mb-6">
           {['active', 'paused', 'completed', 'archived'].map((s) => (
-            <button
+            <motion.button
               key={s}
               onClick={() => setFilter(s)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                filter === s
-                  ? 'bg-primary-500/20 text-primary-300 border border-primary-500/30'
-                  : 'bg-dark-800 text-dark-400 border border-dark-700 hover:border-dark-500'
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`filter-btn ${
+                filter === s ? 'filter-btn-active' : 'filter-btn-inactive'
               }`}
             >
               {s.charAt(0).toUpperCase() + s.slice(1)}
-            </button>
+            </motion.button>
           ))}
           <div className="relative ml-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
@@ -81,16 +81,32 @@ export default function GoalsPage() {
       </FadeIn>
 
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-        </div>
+        <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <StaggerItem key={i}>
+              <div className="skeleton h-48 rounded-2xl" />
+            </StaggerItem>
+          ))}
+        </StaggerContainer>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20">
-          <Target className="w-16 h-16 text-dark-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">No goals yet</h3>
-          <p className="text-dark-400 mb-4">Create your first goal to get started</p>
-          <Link href="/goals/new" className="btn-primary">Create Goal</Link>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-20"
+        >
+          <div className="w-20 h-20 rounded-2xl bg-dark-800/50 flex items-center justify-center mx-auto mb-5 border border-dark-700/50">
+            <Target className="w-10 h-10 text-dark-400" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">{search ? 'No matching goals' : 'No goals yet'}</h3>
+          <p className="text-dark-400 mb-6 max-w-sm mx-auto">
+            {search ? 'Try adjusting your search or filters' : 'Create your first goal to start tracking what matters'}
+          </p>
+          {!search && (
+            <Link href="/goals/new" className="btn-primary inline-flex items-center gap-2">
+              <Plus className="w-4 h-4" /> Create Goal
+            </Link>
+          )}
+        </motion.div>
       ) : (
         <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((goal) => (

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Medal, Users, Zap, Flame, Crown } from 'lucide-react';
+import { Trophy, Medal, Users, Flame, Crown } from 'lucide-react';
 import { leaderboardAPI } from '@/lib/api';
 import { AnimatedPage, FadeIn, StaggerContainer, StaggerItem, ScaleIn } from '@/components/animations/MotionComponents';
 import type { LeaderboardEntry, GroupLeaderboardEntry } from '@/types';
@@ -44,34 +44,34 @@ export default function LeaderboardPage() {
       <FadeIn>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Leaderboard</h1>
-            <p className="text-dark-400 text-sm mt-1">See how you stack up</p>
+            <h1 className="page-header">Leaderboard</h1>
+            <p className="page-subtitle">See how you stack up</p>
           </div>
         </div>
       </FadeIn>
 
       <FadeIn>
         <div className="flex gap-3 mb-6">
-          <button
+          <motion.button
             onClick={() => setTab('users')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
-              tab === 'users'
-                ? 'bg-primary-500/20 text-primary-300 border border-primary-500/30'
-                : 'bg-dark-800 text-dark-400 border border-dark-700'
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`filter-btn flex items-center gap-2 ${
+              tab === 'users' ? 'filter-btn-active' : 'filter-btn-inactive'
             }`}
           >
             <Users className="w-4 h-4" /> Users
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => setTab('groups')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
-              tab === 'groups'
-                ? 'bg-primary-500/20 text-primary-300 border border-primary-500/30'
-                : 'bg-dark-800 text-dark-400 border border-dark-700'
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`filter-btn flex items-center gap-2 ${
+              tab === 'groups' ? 'filter-btn-active' : 'filter-btn-inactive'
             }`}
           >
             <Trophy className="w-4 h-4" /> Groups
-          </button>
+          </motion.button>
         </div>
       </FadeIn>
 
@@ -101,9 +101,14 @@ export default function LeaderboardPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-        </div>
+        <StaggerContainer className="space-y-2">
+          <div className="skeleton h-24 rounded-2xl mb-6" />
+          {[...Array(10)].map((_, i) => (
+            <StaggerItem key={i}>
+              <div className="skeleton h-16 rounded-2xl" />
+            </StaggerItem>
+          ))}
+        </StaggerContainer>
       ) : (
         <StaggerContainer className="space-y-2">
           {(tab === 'users' ? users : groups).slice(0, 3).map((entry: any, i: number) => (

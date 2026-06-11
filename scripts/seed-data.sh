@@ -1,5 +1,5 @@
 #!/bin/bash
-# MongoDB seed script for RickChat / comeback.ai
+# MongoDB seed script for comeback.AI
 # Usage: bash scripts/seed-data.sh
 # Requires mongosh available and MONGODB_URI set
 

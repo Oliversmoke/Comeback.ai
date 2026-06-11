@@ -113,8 +113,30 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="skeleton-title" />
+            <div className="skeleton-text w-48" />
+          </div>
+          <div className="skeleton h-12 w-32 rounded-xl" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="skeleton-card" />
+          ))}
+        </div>
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="skeleton h-64 rounded-2xl" />
+            <div className="skeleton h-48 rounded-2xl" />
+          </div>
+          <div className="space-y-6">
+            <div className="skeleton h-48 rounded-2xl" />
+            <div className="skeleton h-48 rounded-2xl" />
+            <div className="skeleton h-40 rounded-2xl" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -125,10 +147,10 @@ export default function DashboardPage() {
       <FadeIn>
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold">
+            <h1 className="page-header">
               Welcome back, <span className="gradient-text">{user?.displayName || user?.username}</span>
             </h1>
-            <p className="text-dark-400 mt-1">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+            <p className="page-subtitle">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
           </div>
           <motion.button
             onClick={generateAiTasks}
@@ -234,19 +256,27 @@ export default function DashboardPage() {
               </div>
 
               {todayTasks.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-3" />
-                  <p className="text-dark-400">All tasks completed! Great job!</p>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-12"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-green-500/10 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 text-green-400" />
+                  </div>
+                  <p className="text-lg font-medium mb-1">All clear!</p>
+                  <p className="text-dark-400 text-sm mb-6">All tasks completed. Great job!</p>
                   <motion.button
                     onClick={generateAiTasks}
                     disabled={aiGenerating}
                     whileHover={{ scale: 1.02 }}
-                    className="btn-primary mt-4 text-sm"
+                    whileTap={{ scale: 0.98 }}
+                    className="btn-primary text-sm"
                   >
-                    <Sparkles className="w-4 h-4 inline mr-1" />
+                    <Sparkles className="w-4 h-4 inline mr-1.5" />
                     Generate AI Tasks
                   </motion.button>
-                </div>
+                </motion.div>
               ) : (
                 <div className="space-y-2">
                   {todayTasks.map((task, i) => (

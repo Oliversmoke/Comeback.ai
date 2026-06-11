@@ -6,6 +6,7 @@ import { Settings, User, Bell, Shield, Palette, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { authAPI } from '@/lib/api';
 import { AnimatedPage, FadeIn } from '@/components/animations/MotionComponents';
+import { ThemeToggleCard } from '@/components/ui/ThemeToggle';
 import toast from 'react-hot-toast';
 
 const tabs = [
@@ -41,9 +42,16 @@ export default function SettingsPage() {
   return (
     <AnimatedPage>
       <FadeIn>
-        <div className="flex items-center gap-3 mb-8">
-          <Settings className="w-6 h-6 text-primary-400" />
-          <h1 className="text-2xl font-bold">Settings</h1>
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary-500/20 flex items-center justify-center">
+              <Settings className="w-5 h-5 text-primary-400" />
+            </div>
+            <div>
+              <h1 className="page-header">Settings</h1>
+              <p className="page-subtitle">Manage your account and preferences</p>
+            </div>
+          </div>
         </div>
       </FadeIn>
 
@@ -167,8 +175,8 @@ export default function SettingsPage() {
               animate={{ opacity: 1, y: 0 }}
               className="glass-card p-6"
             >
-              <h2 className="text-xl font-semibold mb-4">Appearance</h2>
-              <p className="text-dark-400">Theme preferences coming soon.</p>
+              <h2 className="text-xl font-semibold mb-6">Appearance</h2>
+              <ThemeToggleCard />
             </motion.div>
           )}
         </div>

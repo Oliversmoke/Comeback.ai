@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ListTodo, Plus, CheckCircle2, Clock, Sparkles, Filter, Search, Zap, Trash2,
+  CheckCircle2, Sparkles, Search, Trash2,
 } from 'lucide-react';
 import { tasksAPI, aiAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -83,14 +83,15 @@ export default function TasksPage() {
       <FadeIn>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Tasks</h1>
-            <p className="text-dark-400 text-sm mt-1">Manage your daily tasks</p>
+            <h1 className="page-header">Tasks</h1>
+            <p className="page-subtitle">Manage your daily tasks</p>
           </div>
           <div className="flex items-center gap-3">
             <motion.button
               onClick={generateAiTasks}
               disabled={aiGenerating}
               whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               className="btn-secondary flex items-center gap-2 text-sm"
             >
               <Sparkles className={`w-4 h-4 ${aiGenerating ? 'animate-spin' : ''}`} />
@@ -103,17 +104,17 @@ export default function TasksPage() {
       <FadeIn>
         <div className="flex flex-wrap gap-3 mb-6">
           {['all', 'pending', 'in_progress', 'pending_review', 'completed'].map((s) => (
-            <button
+            <motion.button
               key={s}
               onClick={() => setFilter(s)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                filter === s
-                  ? 'bg-primary-500/20 text-primary-300 border border-primary-500/30'
-                  : 'bg-dark-800 text-dark-400 border border-dark-700 hover:border-dark-500'
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`filter-btn ${
+                filter === s ? 'filter-btn-active' : 'filter-btn-inactive'
               }`}
             >
               {s === 'in_progress' ? 'In Progress' : s.charAt(0).toUpperCase() + s.slice(1)}
-            </button>
+            </motion.button>
           ))}
           <div className="relative ml-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
@@ -129,15 +130,27 @@ export default function TasksPage() {
       </FadeIn>
 
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-        </div>
+        <StaggerContainer className="space-y-2">
+          {[...Array(8)].map((_, i) => (
+            <StaggerItem key={i}>
+              <div className="skeleton h-20 rounded-2xl" />
+            </StaggerItem>
+          ))}
+        </StaggerContainer>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20">
-          <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">All clear!</h3>
-          <p className="text-dark-400">No tasks in this category</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-20"
+        >
+          <div className="w-20 h-20 rounded-2xl bg-dark-800/50 flex items-center justify-center mx-auto mb-5 border border-dark-700/50">
+            <CheckCircle2 className="w-10 h-10 text-dark-400" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">{search ? 'No matching tasks' : 'All clear!'}</h3>
+          <p className="text-dark-400 mb-6 max-w-sm mx-auto">
+            {search ? 'Try adjusting your search or filters' : 'No tasks in this category'}
+          </p>
+        </motion.div>
       ) : (
         <StaggerContainer className="space-y-2">
           {filtered.map((task) => (

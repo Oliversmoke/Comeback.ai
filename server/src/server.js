@@ -127,7 +127,7 @@ const startServer = async () => {
     configureSocket(server);
 
     server.listen(PORT, () => {
-      console.log(`\n🚀 RickChat Productivity Server`);
+      console.log(`\n🚀 comeback.AI API Server`);
       console.log(`📡 Port: ${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🔗 URL: http://localhost:${PORT}`);

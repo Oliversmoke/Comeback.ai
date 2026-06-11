@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   },
   trailingSlash: process.env.NEXT_STATIC_EXPORT === 'true',
   skipTrailingSlashRedirect: process.env.NEXT_STATIC_EXPORT === 'true',
-  outputFileTracingRoot: process.env.NEXT_STATIC_EXPORT === 'true' ? undefined : '/home/gamp/comeback.ai',
+  outputFileTracingRoot: process.env.NEXT_STATIC_EXPORT === 'true' ? undefined : process.cwd(),
 };
 
 export default nextConfig;

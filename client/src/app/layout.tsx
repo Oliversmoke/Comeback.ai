@@ -1,15 +1,16 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from './providers';
+import { ThemeScript } from './theme-script';
 
 export const metadata: Metadata = {
-  title: 'RickChat - Social Productivity',
+  title: 'comeback.AI - Social Productivity',
   description: 'Achieve your goals with AI-powered coaching and social accountability',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'RickChat',
+    title: 'comeback.AI',
   },
   icons: {
     icon: '/icons/icon.svg',
@@ -27,10 +28,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-touch-fullscreen" content="yes" />
+        <ThemeScript />
       </head>
       <body className="antialiased font-sans">
         <script

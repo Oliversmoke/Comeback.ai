@@ -7,6 +7,8 @@ import { LayoutDashboard, Target, ListTodo, Users, MessageSquare, Trophy, Bot, M
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
+import { useThemeStore } from '@/store/themeStore';
+import { ThemeToggleButton } from '@/components/ui/ThemeToggle';
 
 const mobileNavItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Home' },
@@ -15,7 +17,7 @@ const mobileNavItems = [
   { href: '/groups', icon: Users, label: 'Groups' },
   { href: '/chat', icon: MessageSquare, label: 'Chat' },
   { href: '/leaderboard', icon: Trophy, label: 'Rank' },
-  { href: '/ai-coach', icon: Bot, label: 'AI' },
+  { href: '/ai-coach', icon: Bot, label: 'AI', badge: 'Owner' },
 ];
 
 export default function Navbar() {
@@ -48,6 +50,11 @@ export default function Navbar() {
                 )}
                 <Icon className="w-5 h-5" />
                 <span className="text-[10px] font-medium">{item.label}</span>
+                {(item as any).badge && (
+                  <span className="absolute -top-0.5 -right-1 text-[8px] px-1 py-0.5 rounded-full bg-accent-500/20 text-accent-400 border border-accent-500/30 font-medium leading-none">
+                    {(item as any).badge}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -60,7 +67,7 @@ export default function Navbar() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
             <Target className="w-4 h-4 text-white" />
           </div>
-          <span className="text-lg font-bold gradient-text">RickChat</span>
+          <span className="text-lg font-bold gradient-text">comeback.AI</span>
         </Link>
 
         <div className="flex items-center gap-3">
@@ -71,6 +78,7 @@ export default function Navbar() {
           <div className="text-xs text-dark-400">
             Lv.{user?.level || 1}
           </div>
+          <ThemeToggleButton />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-1.5 rounded-lg hover:bg-dark-700 transition-colors"
@@ -96,7 +104,7 @@ export default function Navbar() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-8">
-              <img src={user?.avatar} alt="" className="w-12 h-12 rounded-full" />
+              <img src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.username}&background=6366f1&color=fff`} alt="" className="w-12 h-12 rounded-full" />
               <div>
                 <p className="font-medium">{user?.displayName}</p>
                 <p className="text-sm text-dark-400">@{user?.username}</p>

@@ -8,15 +8,23 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { cn, calculateXpProgress } from '@/lib/utils';
+import { ThemeToggleButton } from '@/components/ui/ThemeToggle';
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
+}
+
+const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/goals', label: 'Goals', icon: Target },
   { href: '/tasks', label: 'Tasks', icon: ListTodo },
   { href: '/groups', label: 'Groups', icon: Users },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
-  { href: '/ai-coach', label: 'AI Coach', icon: Bot },
+  { href: '/ai-coach', label: 'AI Coach', icon: Bot, badge: 'Owner' },
 ];
 
 export default function Sidebar() {
@@ -31,7 +39,7 @@ export default function Sidebar() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
             <Target className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold gradient-text">RickChat</span>
+          <span className="text-xl font-bold gradient-text">comeback.AI</span>
         </Link>
       </div>
 
@@ -52,7 +60,12 @@ export default function Sidebar() {
                 )}
               >
                 <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium flex-1">{item.label}</span>
+                {item.badge && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent-500/20 text-accent-400 border border-accent-500/30 font-medium">
+                    {item.badge}
+                  </span>
+                )}
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"
@@ -66,14 +79,17 @@ export default function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-dark-700/50 space-y-4">
-        <Link href="/settings" className="flex items-center gap-3 px-4 py-2 rounded-xl text-dark-300 hover:text-dark-100 hover:bg-dark-700/50 transition-all">
-          <Settings className="w-5 h-5" />
-          <span className="text-sm">Settings</span>
-        </Link>
+        <div className="flex items-center justify-between px-4 py-2">
+          <Link href="/settings" className="flex items-center gap-3 text-dark-300 hover:text-dark-100 transition-all group">
+            <Settings className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+            <span className="text-sm">Settings</span>
+          </Link>
+          <ThemeToggleButton />
+        </div>
 
         <button
           onClick={logout}
-          className="flex items-center gap-3 px-4 py-2 rounded-xl text-dark-300 hover:text-red-400 hover:bg-red-500/10 transition-all w-full"
+          className="flex items-center gap-3 px-4 py-2 rounded-xl text-dark-300 hover:text-red-400 hover:bg-red-500/10 transition-all w-full active:scale-[0.98]"
         >
           <LogOut className="w-5 h-5" />
           <span className="text-sm">Logout</span>

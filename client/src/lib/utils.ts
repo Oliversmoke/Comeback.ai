@@ -26,7 +26,7 @@ export function formatTimeAgo(date: string | Date): string {
 }
 
 export function calculateXpProgress(xp: number): number {
-  const levels = [0, 100, 250, 500, 1000, 1750, 2750, 4000, 5500, 7500, 10000];
+  const levels = [0, 100, 250, 500, 1000, 1750, 2750, 4000, 5500, 7500, 10000, 13000, 16500, 20500, 25000, 30000, 36000, 43000, 51000, 60000];
   let currentLevel = 0;
   for (let i = levels.length - 1; i >= 0; i--) {
     if (xp >= levels[i]) { currentLevel = i; break; }

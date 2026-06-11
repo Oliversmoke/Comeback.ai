@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User } from '@/types';
+import { authAPI } from '@/lib/api';
 
 interface AuthState {
   user: User | null;
@@ -14,7 +15,7 @@ interface AuthState {
   setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   setUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateXp: (xp: number, level: number) => void;
   updateStreak: (streak: number) => void;
 }
@@ -38,7 +39,10 @@ export const useAuthStore = create<AuthState>()(
 
       setLoading: (isLoading) => set({ isLoading }),
 
-      logout: () => {
+      logout: async () => {
+        try {
+          await authAPI.logout();
+        } catch {}
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, isLoading: false });
