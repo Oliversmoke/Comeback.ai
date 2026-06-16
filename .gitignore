@@ -25,3 +25,4 @@ server/data/
 # Misc
 joke-generator.js
 *.tsbuildinfo
+.vercel
